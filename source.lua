@@ -32,6 +32,10 @@ local function createESPObject(instanceType, class, settings)
         end
 
         settings.Properties = nil
+    else
+        for i, v in pairs(DefaultProperties[object.Class]) do
+            instance[i] = v
+        end
     end
 
     for i, v in pairs(settings) do
@@ -91,8 +95,8 @@ end)
 
 -- RenderStepped
 RunService.RenderStepped:Connect(function()
-    for _, v in pairs(Objects) do
-        for class, object in pairs(v) do
+    for _, objectList in pairs(Objects) do
+        for class, object in pairs(objectList) do
             if object.Active then
                 if class == 'Box' then
 
