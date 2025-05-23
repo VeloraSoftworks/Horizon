@@ -91,32 +91,34 @@ end)
 
 -- RenderStepped
 RunService.RenderStepped:Connect(function()
-    for i, object in pairs(Objects) do
-        if object.Active then
-            if object.Class == 'Box' then
+    for _, v in pairs(Objects) do
+        for class, object in pairs(v) do
+            if object.Active then
+                if class == 'Box' then
 
-            elseif object.Class == 'Tracer' then
-                local Character, Root = Horizon.GetCharacter(object.Target)
-                Root = Root or Character and Character:FindFirstChild('HumanoidRootPart')
-                if not Root then
-                    object.Instance.Visible = false
-                    continue
+                elseif class == 'Tracer' then
+                    local Character, Root = Horizon.GetCharacter(object.Target)
+                    Root = Root or Character and Character:FindFirstChild('HumanoidRootPart')
+                    if not Root then
+                        object.Instance.Visible = false
+                        continue
+                    end
+
+                    local Vector, OnScreen = Camera:WorldToViewportPoint(Root.Position)
+
+                    if OnScreen then
+                        object.Instance.Visible = true
+                    else
+                        object.Instance.Visible = false
+                        continue
+                    end
+
+                    object.From = object.Origin ~= 'Mouse' and Vector2.new(Camera.ViewportSize.X / 2, object.Origin == 'Top' and 0 or object.Origin == 'Bottom' and Camera.ViewportSize.Y or Camera.ViewportSize.Y / 2) or Mouse.Position
+                    object.To = Vector
                 end
-
-                local Vector, OnScreen = Camera:WorldToViewportPoint(Root.Position)
-
-                if OnScreen then
-                    object.Instance.Visible = true
-                else
-                    object.Instance.Visible = false
-                    continue
-                end
-
-                object.From = object.Origin ~= 'Mouse' and Vector2.new(Camera.ViewportSize.X / 2, object.Origin == 'Top' and 0 or object.Origin == 'Bottom' and Camera.ViewportSize.Y or Camera.ViewportSize.Y / 2) or Mouse.Position
-                object.To = Vector
+            else
+                object.Instance.Visible = false
             end
-        else
-            object.Instance.Visible = false
         end
     end
 end)
