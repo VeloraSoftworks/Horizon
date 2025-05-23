@@ -132,7 +132,7 @@ RunService.RenderStepped:Connect(function()
                             object.Origin == 'Top' and 0 or
                             object.Origin == 'Bottom' and Camera.ViewportSize.Y or
                             Camera.ViewportSize.Y / 2)
-                        or Mouse.Position
+                        or Vector2.new(Mouse.X, Mouse.Y)
 
                     object.To = Vector
 
