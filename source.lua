@@ -15,27 +15,37 @@ local DefaultProperties = {
     Box = {Thickness = 2, Color = Color3.new(1, 1, 1)}
 }
 
+-- Dynamic Color Generator
+local function getDynamicColor()
+    local t = tick()
+    return Color3.fromHSV((t % 5) / 5, 1, 1)
+end
+
 -- Object Creation
 local function createESPObject(instanceType, class, settings)
+    settings = settings or {}
+
     local instance = type(instanceType) == 'string' and Drawing.new(instanceType) or instanceType
 
     local object = {
         Instance = instance,
         Type = type(instanceType) == 'string' and instanceType or instance.ClassName,
         Class = class,
-        Active = settings.Active or true,
+        Active = settings.Active ~= false,
     }
 
     if settings.Properties then
         for i, v in pairs(settings.Properties) do
             instance[i] = v
         end
-
-        settings.Properties = nil
     else
-        for i, v in pairs(DefaultProperties[object.Class]) do
+        for i, v in pairs(DefaultProperties[class]) do
             instance[i] = v
         end
+    end
+
+    if settings.DynamicColor then
+        object.DynamicColor = true
     end
 
     for i, v in pairs(settings) do
@@ -58,6 +68,10 @@ local function createESPObject(instanceType, class, settings)
                 table.remove(Objects[class], i)
                 break
             end
+        end
+
+        if #Objects[class] == 0 then
+            Objects[class] = nil
         end
     end
 
@@ -96,12 +110,12 @@ end)
 -- RenderStepped
 RunService.RenderStepped:Connect(function()
     for _, objectList in pairs(Objects) do
-        for class, object in pairs(objectList) do
+        for _, object in pairs(objectList) do
             if object.Active then
-                if class == 'Box' then
-
-                elseif class == 'Tracer' then
-                    local Character, Root = Horizon.GetCharacter(object.Target)
+                if object.Class == 'Box' then
+                    -- Box logic can go here later
+                elseif object.Class == 'Tracer' then
+                    local Character, Root = Horizon:GetCharacter(object.Target)
                     Root = Root or Character and Character:FindFirstChild('HumanoidRootPart')
                     if not Root then
                         object.Instance.Visible = false
@@ -109,16 +123,22 @@ RunService.RenderStepped:Connect(function()
                     end
 
                     local Vector, OnScreen = Camera:WorldToViewportPoint(Root.Position)
+                    object.Instance.Visible = OnScreen
 
-                    if OnScreen then
-                        object.Instance.Visible = true
-                    else
-                        object.Instance.Visible = false
-                        continue
-                    end
+                    if not OnScreen then continue end
 
-                    object.From = object.Origin ~= 'Mouse' and Vector2.new(Camera.ViewportSize.X / 2, object.Origin == 'Top' and 0 or object.Origin == 'Bottom' and Camera.ViewportSize.Y or Camera.ViewportSize.Y / 2) or Mouse.Position
+                    object.From = object.Origin ~= 'Mouse'
+                        and Vector2.new(Camera.ViewportSize.X / 2,
+                            object.Origin == 'Top' and 0 or
+                            object.Origin == 'Bottom' and Camera.ViewportSize.Y or
+                            Camera.ViewportSize.Y / 2)
+                        or Mouse.Position
+
                     object.To = Vector
+
+                    if object.DynamicColor then
+                        object.Instance.Color = getDynamicColor()
+                    end
                 end
             else
                 object.Instance.Visible = false
