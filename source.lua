@@ -127,18 +127,15 @@ RunService.RenderStepped:Connect(function()
 
                     if not OnScreen then continue end
 
-                    object.From = object.Origin ~= 'Mouse'
+                    object.Instance.From = object.Origin ~= 'Mouse'
                         and Vector2.new(Camera.ViewportSize.X / 2,
                             object.Origin == 'Top' and 0 or
                             object.Origin == 'Bottom' and Camera.ViewportSize.Y or
                             Camera.ViewportSize.Y / 2)
                         or Vector2.new(Mouse.X, Mouse.Y)
 
-                    object.To = Vector
-
-                    if object.DynamicColor then
-                        object.Instance.Color = getDynamicColor()
-                    end
+                    object.Instance.To = Vector
+                    object.Instance.Visible = true
                 end
             else
                 object.Instance.Visible = false
