@@ -133,7 +133,7 @@ RunService.RenderStepped:Connect(function()
                             Camera.ViewportSize.Y / 2)
                         or Vector2.new(Mouse.X, Mouse.Y)
 
-                    object.Instance.To = Vector
+                    object.Instance.To = Vector2.new(Vector.X, Vector.Y)
                     object.Instance.Visible = true
                 end
             else
