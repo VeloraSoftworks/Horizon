@@ -66,7 +66,7 @@ local function createESPObject(instanceType, class, settings)
 end
 
 -- Create Instances
-function Horizon:AddTracer(settings)
+function Horizon:CreateTracer(settings)
     return createESPObject('Line', 'Tracer', settings)
 end
 
