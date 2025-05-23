@@ -127,8 +127,7 @@ RunService.RenderStepped:Connect(function()
 
                     if not OnScreen then continue end
 
-                    object.Instance.From = object.Origin ~= 'Mouse'
-                        and Vector2.new(Camera.ViewportSize.X / 2,
+                    object.Instance.From = object.Origin ~= 'Mouse' and Vector2.new(Camera.ViewportSize.X / 2,
                             object.Origin == 'Top' and 0 or
                             object.Origin == 'Bottom' and Camera.ViewportSize.Y or
                             Camera.ViewportSize.Y / 2)
