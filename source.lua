@@ -10,6 +10,10 @@ local Mouse = LocalPlayer:GetMouse()
 
 local Horizon = {}
 local Objects = {}
+local DefaultProperties = {
+    Tracer = {Thickness = 1, Color = Color3.new(1, 1, 1)},
+    Box = {Thickness = 2, Color = Color3.new(1, 1, 1)}
+}
 
 -- Object Creation
 local function createESPObject(instanceType, class, settings)
@@ -18,6 +22,7 @@ local function createESPObject(instanceType, class, settings)
     local object = {
         Instance = instance,
         Type = type(instanceType) == 'string' and instanceType or instance.ClassName,
+        Class = class,
         Active = settings.Active or true,
     }
 
@@ -44,21 +49,24 @@ local function createESPObject(instanceType, class, settings)
             end
         end
 
-        for i = #Objects, 1, -1 do
-            if Objects[i] == self then
-                table.remove(Objects, i)
+        for i = #Objects[class], 1, -1 do
+            if Objects[class][i] == self then
+                table.remove(Objects[class], i)
                 break
             end
         end
     end
 
-    table.insert(Objects, object)
+    if not Objects[class] then
+        Objects[class] = {}
+    end
+
+    table.insert(Objects[class], object)
     return object
 end
 
 -- Create Instances
 function Horizon:AddTracer(settings)
-    -- from: center, bottom, top, mouse
     return createESPObject('Line', 'Tracer', settings)
 end
 
@@ -67,15 +75,16 @@ function Horizon:CreateBox(settings)
 end
 
 -- Player & Character Management
-Horizon.GetCharacter = function(player)
+function Horizon:GetCharacter(player)
     return player.Character, nil -- character, rootpart
 end
 
 Players.PlayerRemoving:Connect(function(player)
-    for i = #Objects, 1, -1 do
-        local obj = Objects[i]
-        if obj.Target == player then
-            obj:Destroy()
+    for _, classObjects in pairs(Objects) do
+        for i = #classObjects, 1, -1 do
+            if classObjects[i].Target == player then
+                classObjects[i]:Destroy()
+            end
         end
     end
 end)
@@ -85,14 +94,14 @@ RunService.RenderStepped:Connect(function()
     for i, object in pairs(Objects) do
         if object.Active then
             if object.Class == 'Box' then
-                local Character, Root = Horizon.GetCharacter(object.Target)
-                Root = Root or Character and Character:FindFirstChild('HumanoidRootPart')
-                if not Root then return end
 
             elseif object.Class == 'Tracer' then
                 local Character, Root = Horizon.GetCharacter(object.Target)
                 Root = Root or Character and Character:FindFirstChild('HumanoidRootPart')
-                if not Root then return end
+                if not Root then
+                    object.Instance.Visible = false
+                    continue
+                end
 
                 local Vector, OnScreen = Camera:WorldToViewportPoint(Root.Position)
 
@@ -100,7 +109,7 @@ RunService.RenderStepped:Connect(function()
                     object.Instance.Visible = true
                 else
                     object.Instance.Visible = false
-                    return
+                    continue
                 end
 
                 object.From = object.Origin ~= 'Mouse' and Vector2.new(Camera.ViewportSize.X / 2, object.Origin == 'Top' and 0 or object.Origin == 'Bottom' and Camera.ViewportSize.Y or Camera.ViewportSize.Y / 2) or Mouse.Position
@@ -111,5 +120,10 @@ RunService.RenderStepped:Connect(function()
         end
     end
 end)
+
+-- Final setup
+function Horizon:GetObjects(class)
+    return class and Objects[class] or Objects
+end
 
 return Horizon
